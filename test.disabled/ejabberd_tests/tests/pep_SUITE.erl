@@ -130,7 +130,7 @@ send_caps_after_login_test(Config) ->
               pubsub_tools:publish(Alice, <<"item2">>, {pep, NodeNS}, []),
 
               escalus_story:make_all_clients_friends([Alice, Bob]),
-              
+
               Caps = caps(NodeNS),
               send_presence_with_caps_and_handle_disco(Bob, Caps, NodeNS),
               receive_presence_with_caps(Bob, Bob, Caps),
@@ -155,7 +155,7 @@ h_ok_after_notify_test(ConfigIn) ->
               pubsub_tools:receive_item_notification(
                 Kate, <<"item2">>, {escalus_utils:get_short_jid(Alice), NodeNS}, []),
 
-              H = escalus_tcp:get_sm_h(Kate),
+              H = escalus_tcp:get_sm_h(Kate#client.rcv_pid),
               escalus:send(Kate, escalus_stanza:sm_ack(H)),
 
               escalus_connection:send(Kate, escalus_stanza:sm_request()),
