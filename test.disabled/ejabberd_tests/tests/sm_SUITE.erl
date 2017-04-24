@@ -347,6 +347,8 @@ resend_unacked_on_reconnection(Config) ->
         %% Alice disconnects without acking the messages.
     escalus_connection:stop(Alice),
     escalus_connection:stop(Bob),
+    wait_until_disconnected(AliceSpec0, 1000),
+
     %% Messages go to the offline store.
     %% Alice receives the messages from the offline store.
     AliceSpec = [{manual_ack, true} | AliceSpec0],
@@ -378,8 +380,9 @@ preserve_order(Config) ->
     escalus_connection:send(Bob, escalus_stanza:chat_to(get_bjid(AliceSpec), <<"1">>)),
 
     %% kill alice connection
-    escalus_client:kill_connection(Config, Alice),
-    ct:sleep(300),
+    escalus_connection:kill(Alice),
+    wait_until_disconnected(AliceSpec, 1000),
+
     escalus_connection:send(Bob, escalus_stanza:chat_to(get_bjid(AliceSpec), <<"2">>)),
     escalus_connection:send(Bob, escalus_stanza:chat_to(get_bjid(AliceSpec), <<"3">>)),
 
@@ -441,7 +444,8 @@ resend_unacked_after_resume_timeout(Config) ->
 
     escalus_connection:send(Bob, escalus_stanza:chat_to(get_bjid(AliceSpec), <<"msg-1">>)),
     %% kill alice connection
-    escalus_client:kill_connection(Config, Alice),
+    escalus_connection:kill(Alice),
+
     U = proplists:get_value(username, AliceSpec),
     S = proplists:get_value(server, AliceSpec),
     1 = length(escalus_ejabberd:rpc(ejabberd_sm, get_user_resources, [U, S])),
@@ -483,7 +487,7 @@ resume_session_state_send_message(Config) ->
 
     escalus_connection:send(Bob, escalus_stanza:chat_to(get_bjid(AliceSpec), <<"msg-1">>)),
     %% kill alice connection
-    escalus_client:kill_connection(Config, Alice),
+    escalus_connection:kill(Alice),
     ct:sleep(1000), %% alice should be in resume_session_state
 
     U = proplists:get_value(username, AliceSpec),
@@ -528,7 +532,7 @@ resume_session_state_stop_c2s(Config) ->
     escalus_connection:send(Bob, escalus_stanza:chat_to(get_bjid(AliceSpec), <<"msg-1">>)),
 
     % kill alice connection
-    escalus_client:kill_connection(Config, Alice),
+    escalus_connection:kill(Alice),
     ct:sleep(1000), %% alice should be in resume_session_state
     % session should be  alive
     U = proplists:get_value(username, AliceSpec),
@@ -794,7 +798,7 @@ assert_no_offline_msgs() ->
 wait_for_c2s_state_change(C2SPid, StateName, NewStateName) ->
     wait_for_c2s_state_change(C2SPid, StateName, NewStateName, 5000).
 
-wait_for_c2s_state_change(C2SPid, StateName, NewStateName, 0) ->
+wait_for_c2s_state_change(C2SPid, StateName, NewStateName, TimeLeft) when TimeLeft =< 0 ->
     error({c2s_state_change_timeout, C2SPid, StateName, NewStateName});
 wait_for_c2s_state_change(C2SPid, StateName, NewStateName, TimeLeft) ->
     case get_c2s_state(C2SPid) of
@@ -816,6 +820,16 @@ extract_state_name(SysStatus) ->
     {status, _Pid, {module, _},
      [_, _, _, _, [_, {data, FSMData} | _]]} = SysStatus,
     proplists:get_value("StateName", FSMData).
+
+wait_until_disconnected(UserSpec, Timeout) when Timeout =< 0 ->
+    error({disconnect_timeout, UserSpec});
+wait_until_disconnected(UserSpec, Timeout) ->
+    case get_user_resources(UserSpec) of
+        [] -> ok;
+        [_|_] ->
+            ct:sleep(200),
+            wait_until_disconnected(UserSpec, Timeout - 200)
+    end.
 
 get_session_pid(UserSpec, Resource) ->
     {U, S} = get_us_from_spec(UserSpec),
