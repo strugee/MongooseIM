@@ -233,13 +233,17 @@ open_socket(init, StateData) ->
                                 StateData#state.server,
                                 StateData#state.new,
                                 StateData#state.verify}]),
-    AddrList = get_predefined_addresses(StateData#state.server) ++
+    AddrList =
+        case get_predefined_addresses(StateData#state.server) of
+            [] ->
                case ejabberd_s2s:domain_utf8_to_ascii(StateData#state.server) of
                    false ->
                        [];
                    ASCIIAddr ->
                        get_addr_port(ASCIIAddr)
-               end,
+               end;
+            Addresses -> Addresses
+        end,
     case lists:foldl(fun({Addr, Port}, Acc) ->
                              case Acc of
                                  {ok, Socket} ->
