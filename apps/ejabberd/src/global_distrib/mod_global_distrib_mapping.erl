@@ -22,8 +22,8 @@
 -include("ejabberd.hrl").
 -include("jlib.hrl").
 
--define(DOMAIN_TAB, mod_global_distrib_domain_cache_tab).
--define(JID_TAB, mod_global_distrib_jid_cache_tab).
+-define(DOMAIN_TAB, {mod_global_distrib_domain_cache_tab, 100}).
+-define(JID_TAB, {mod_global_distrib_jid_cache_tab, 100}).
 
 -export([start/2, stop/1]).
 -export([for_domain/1, insert_for_domain/2, delete_for_domain/2, all_domains/0]).

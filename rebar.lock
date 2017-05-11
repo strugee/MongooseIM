@@ -12,8 +12,8 @@
        {ref,"119234548783af19b8ec75c879c5062676b92571"}},
   3},
  {<<"cache_tab">>,
-  {git,"git://github.com/processone/cache_tab",
-       {ref,"adb04d71955ef4790498ca2f005babae2aced3df"}},
+  {git,"git://github.com/kzemek/cache_tab",
+       {ref,"10bf13fe2891f1f3243641fbd04bde2557535270"}},
   0},
  {<<"cowboy">>,
   {git,"git://github.com/ninenines/cowboy.git",
@@ -26,6 +26,10 @@
  {<<"cqerl">>,
   {git,"https://github.com/matehat/cqerl.git",
        {ref,"db339b27fabc6d66a4f7d54716f946f78b44d02b"}},
+  0},
+ {<<"csv">>,
+  {git,"https://github.com/bszaf/csv.git",
+       {ref,"b0b854d8be2d69b0c6eb9bae5591008098973af9"}},
   0},
  {<<"cuesport">>,
   {git,"git://github.com/esl/cuesport.git",
@@ -121,7 +125,11 @@
   {git,"git://github.com/mysql-otp/mysql-otp.git",
        {ref,"43336aee3ae785638c4e82577351c37ec2b51323"}},
   0},
- {<<"p1_utils">>,{pkg,<<"p1_utils">>,<<"1.0.6">>},1},
+ {<<"observer_cli">>,{pkg,<<"observer_cli">>,<<"1.1.0">>},0},
+ {<<"p1_utils">>,
+  {git,"https://github.com/processone/p1_utils",
+       {ref,"470539abadf8b69c9647d17eb6c033d39dc7e6d7"}},
+  1},
  {<<"pa">>,
   {git,"git://github.com/erszcz/pa.git",
        {ref,"e53c540005f4114a854cfa414b00cbc7e9e65ecb"}},
@@ -206,5 +214,5 @@
 {pkg_hash,[
  {<<"eini">>, <<"ABD64A0533398A6D714D21219BB85F2D41FDB42665AC4080939B7BFA8E55F386">>},
  {<<"lhttpc">>, <<"2137CB82D123751B21CC0461A00734CD32CB470BC6278BA139EE13C1ECC3C2B1">>},
- {<<"p1_utils">>, <<"EF0951DDF38E92B7E479AF4B8DC950DF76AF8C1030432EF68B7FD7AD17C436FE">>}]}
+ {<<"observer_cli">>, <<"F3A47C22327424291758167DF3C4600DCF8BF34795A3787612019AA5B86A5C21">>}]}
 ].
