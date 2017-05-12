@@ -13,7 +13,7 @@
   3},
  {<<"cache_tab">>,
   {git,"git://github.com/kzemek/cache_tab",
-       {ref,"10bf13fe2891f1f3243641fbd04bde2557535270"}},
+       {ref,"1d5d0db0b5003ba456ed10f95fa8da023a26b80a"}},
   0},
  {<<"cowboy">>,
   {git,"git://github.com/ninenines/cowboy.git",
