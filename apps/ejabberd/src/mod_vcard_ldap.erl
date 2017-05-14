@@ -79,7 +79,8 @@
          search_reported_attrs = [] :: [binary()],
          search_operator            :: 'or' | 'and',
          binary_search_fields       :: [binary()],
-         deref = neverDerefAliases  :: neverDerefAliases | derefInSearching | derefFindingBaseObj | derefAlways,
+         deref = neverDerefAliases  :: neverDerefAliases | derefInSearching
+                                     | derefFindingBaseObj | derefAlways,
          matches = 0                :: non_neg_integer()}).
 
 -define(VCARD_MAP,
@@ -376,7 +377,12 @@ search_internal(State, Data) ->
                             {attributes, ReportedAttrs}])
         of
       #eldap_search_result{entries = E} ->
-          Limited = if length(E) > Limit -> lists:nthtail(Limit, E); true -> E end,
+          Limited =
+            case length(E) > Limit of
+              true ->
+                lists:nthtail(Limit, E);
+              _ -> E
+            end,
           search_items(Limited, State);
       _ -> error
     end.
