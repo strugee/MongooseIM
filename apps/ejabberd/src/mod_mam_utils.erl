@@ -322,12 +322,12 @@ is_archivable_message(Mod, Dir, Packet=#xmlel{name = <<"message">>}) ->
 is_archivable_message(_, _, _) ->
     false.
 
-is_valid_message_type(_, _, <<"">>)          -> true;
-is_valid_message_type(_, _, <<"normal">>)    -> true;
-is_valid_message_type(_, _, <<"chat">>)      -> true;
-is_valid_message_type(_, _, <<"groupchat">>) -> true;
-is_valid_message_type(_, _, <<"error">>)     -> false;
-is_valid_message_type(_, _, _)               -> false.
+is_valid_message_type(_, _, <<"">>) -> true;
+is_valid_message_type(_, _, <<"normal">>) -> true;
+is_valid_message_type(_, _, <<"chat">>) -> true;
+is_valid_message_type(_, incoming, <<"groupchat">>) -> true;
+is_valid_message_type(_, _, <<"error">>) -> false;
+is_valid_message_type(_, _, _) -> false.
 
 is_valid_message(_Mod, _Dir, Packet) ->
     Body     = xml:get_subtag(Packet, <<"body">>),
@@ -902,7 +902,7 @@ is_last_page(_PageSize, _TotalCount, _Offset, _MessageRows) ->
 %% Ejabberd
 
 -spec send_message(ejabberd:jid(), ejabberd:jid(), jlib:xmlel()
-                  ) -> 'ok' | {'error', 'lager_not_running'}.
+                  ) -> mongoose_acc:t().
 
 -ifdef(MAM_COMPACT_FORWARDED).
 

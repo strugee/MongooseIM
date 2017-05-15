@@ -50,7 +50,7 @@
   0},
  {<<"exml">>,
   {git,"git://github.com/esl/exml.git",
-       {ref,"d365533c193fe61fd211c74518b2136ef71b60ec"}},
+       {ref,"f45f2158108a312aa74f5ea1896a0abe6aa101d9"}},
   0},
  {<<"exometer">>,
   {git,"git://github.com/esl/exometer.git",

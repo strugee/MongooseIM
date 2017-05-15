@@ -181,8 +181,10 @@ stop(Host) ->
 %% Routing
 %%====================================================================
 
--spec process_packet(From :: jid(), To :: jid(), Packet :: exml:element(), Extra :: any()) -> any().
-process_packet(From, To, Packet, _Extra) ->
+-spec process_packet(From :: jid(), To :: jid(), Acc :: mongoose_acc:t(), Extra :: any()) ->
+    any().
+process_packet(From, To, Acc, _Extra) ->
+    Packet = mongoose_acc:to_element(Acc),
     process_decoded_packet(From, To, mod_muc_light_codec_backend:decode(From, To, Packet), Packet).
 
 -spec process_decoded_packet(From :: ejabberd:jid(), To :: ejabberd:jid(),
@@ -205,11 +207,13 @@ process_decoded_packet(From, To, {ok, {_, #blocking{}} = Blocking}, OrigPacket) 
     RouteFun = fun ejabberd_router:route/3,
     case gen_mod:get_module_opt_by_subhost(To#jid.lserver, ?MODULE, blocking, ?DEFAULT_BLOCKING) of
         true ->
-            case handle_blocking(From, To, Blocking) of
-                ok ->
+            ?TEMPORARY,
+            Res = handle_blocking(From, To, Blocking),
+            case (mongoose_acc:is_acc(Res) or (Res == ok)) of
+                true ->
                     ok;
-                Error ->
-                    mod_muc_light_codec_backend:encode_error(Error, From, To, OrigPacket, RouteFun)
+                false ->
+                    mod_muc_light_codec_backend:encode_error(Res, From, To, OrigPacket, RouteFun)
             end;
         false -> mod_muc_light_codec_backend:encode_error(
                    {error, bad_request}, From, To, OrigPacket, fun ejabberd_router:route/3)
@@ -265,7 +269,8 @@ get_muc_service({result, Nodes}, _From, #jid{lserver = LServer} = _To, <<"">>, _
 get_muc_service(Acc, _From, _To, _Node, _Lang) ->
     Acc.
 
--spec remove_user(Acc :: map(), User :: binary(), Server :: binary()) -> ok.
+-spec remove_user(Acc :: mongoose_acc:t(), User :: binary(), Server :: binary()) ->
+    mongoose_acc:t().
 remove_user(Acc, User, Server) ->
     LUser = jid:nodeprep(User),
     LServer = jid:nameprep(Server),
@@ -280,11 +285,14 @@ remove_user(Acc, User, Server) ->
             Acc
     end.
 
--spec add_rooms_to_roster(Acc :: [mod_roster:roster()], UserUS :: ejabberd:simple_bare_jid()) ->
-    [mod_roster:roster()].
+-spec add_rooms_to_roster(Acc :: mongoose_acc:t(), UserUS :: ejabberd:simple_bare_jid()) ->
+    mongoose_acc:t().
 add_rooms_to_roster(Acc, UserUS) ->
-    lists:foldl(
-      fun({{RoomU, RoomS}, RoomName, RoomVersion}, Acc0) ->
+    Items = mongoose_acc:get(roster, Acc, []),
+    RoomList = mod_muc_light_db_backend:get_user_rooms(UserUS, undefined),
+    Info = get_rooms_info(lists:sort(RoomList)),
+    NewItems = lists:foldl(
+      fun({{RoomU, RoomS}, RoomName, RoomVersion}, Items0) ->
               Item = #roster{
                         jid = jid:make_noprep(RoomU, RoomS, <<>>),
                         name = RoomName,
@@ -293,9 +301,9 @@ add_rooms_to_roster(Acc, UserUS) ->
                         xs = [#xmlel{ name = <<"version">>,
                                       children = [#xmlcdata{ content = RoomVersion }] }]
                        },
-              [Item | Acc0]
-      end, Acc, get_rooms_info(lists:sort(
-                                 mod_muc_light_db_backend:get_user_rooms(UserUS, undefined)))).
+              [Item | Items0]
+      end, Items, Info),
+    mongoose_acc:put(roster, NewItems, Acc).
 
 -spec process_iq_get(Acc :: mongoose_acc:t(), From :: ejabberd:jid(), To :: ejabberd:jid(),
                      IQ :: ejabberd:iq(), ActiveList :: binary()) ->
