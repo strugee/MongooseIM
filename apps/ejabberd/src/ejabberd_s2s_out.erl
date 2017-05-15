@@ -999,7 +999,7 @@ bounce_element(Acc, Error) ->
         _ ->
             From = mongoose_acc:get(from_jid, Acc),
             To = mongoose_acc:get(to_jid, Acc),
-            El = mongoose_acc:get(element, Acc),
+            El = mongoose_acc:get(to_send, Acc),
             Err = jlib:make_error_reply(El, Error),
             Acc1 = mongoose_acc:put(to_send, Err, Acc),
             ejabberd_router:route(To, From, Acc1)
