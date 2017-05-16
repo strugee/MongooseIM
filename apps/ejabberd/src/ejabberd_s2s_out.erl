@@ -883,6 +883,9 @@ handle_info({send_text, Text}, StateName, StateData) ->
     Timer = erlang:start_timer(?S2STIMEOUT, self(), []),
     {next_state, StateName, StateData#state{timer = Timer},
      get_timeout_interval(StateName)};
+handle_info({send_element, El, {Pid, Ref}}, StateName, StateData) ->
+    Pid ! {Ref, ok},
+    handle_info({send_element, El}, StateName, StateData);
 handle_info({send_element, El}, StateName, StateData) ->
     case StateName of
         stream_established ->

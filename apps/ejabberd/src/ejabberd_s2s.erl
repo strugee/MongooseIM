@@ -478,7 +478,18 @@ parent_domains(<<_, Rest/binary>>, Acc) ->
 
 -spec send_element(pid(), mongoose_acc:t()) -> {'send_element', mongoose_acc:t()}.
 send_element(Pid, El) ->
-    Pid ! {send_element, El}.
+    case process_info(Pid, message_queue_len) of
+        {_, X} when X < 500 -> Pid ! {send_element, El};
+        _ ->
+            Ref = make_ref(),
+            Pid ! {send_element, El, {self(), Ref}},
+            receive
+                {Ref, ok} -> {send_element, El};
+                {Ref, Reason} -> error(Reason)
+            after
+                5000 -> error(timeout)
+            end
+    end.
 
 %%--------------------------------------------------------------------
 %% Function: domain_utf8_to_ascii(Domain) -> binary() | false
