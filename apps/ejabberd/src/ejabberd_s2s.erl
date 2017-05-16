@@ -487,7 +487,7 @@ send_element(Pid, El) ->
                 {Ref, ok} -> {send_element, El};
                 {Ref, Reason} -> error(Reason)
             after
-                5000 -> error(timeout)
+                60000 -> error(timeout)
             end
     end.
 
