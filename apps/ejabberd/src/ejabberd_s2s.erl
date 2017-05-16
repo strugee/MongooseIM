@@ -197,6 +197,7 @@ init([]) ->
     mnesia:add_table_copy(s2s, node(), ram_copies),
     ejabberd_commands:register_commands(commands()),
     ejabberd_hooks:add(node_cleanup, global, ?MODULE, node_cleanup, 50),
+    wpool:start_sup_pool(s2s_routing, [{workers, 1000}]),
     {ok, #state{}}.
 
 %%--------------------------------------------------------------------

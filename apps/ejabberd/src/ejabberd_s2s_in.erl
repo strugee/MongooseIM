@@ -470,9 +470,7 @@ stream_established({xmlstreamelement, El}, StateData) ->
                                               s2s_receive_packet,
                                               LTo,
                                               [From, To, NewEl]),
-                                            spawn(fun() ->
-                                            ejabberd_router:route(
-                                              From, To, NewEl) end);
+                                            route(From, To, NewEl);
                                        true ->
                                             error
                                     end;
@@ -490,8 +488,7 @@ stream_established({xmlstreamelement, El}, StateData) ->
                                               s2s_receive_packet,
                                               LTo,
                                               [From, To, NewEl]),
-                                            ejabberd_router:route(
-                                              From, To, NewEl);
+                                            route(From, To, NewEl);
                                        true ->
                                             error
                                     end;
@@ -828,3 +825,6 @@ match_labels([DL | DLabels], [PL | PLabels]) ->
         false ->
             false
     end.
+
+route(From, To, NewEl) ->
+    wpool:cast(s2s_routing, {ejabberd_router, route, [From, To, NewEl]}, available_worker).
