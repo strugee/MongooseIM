@@ -470,8 +470,9 @@ stream_established({xmlstreamelement, El}, StateData) ->
                                               s2s_receive_packet,
                                               LTo,
                                               [From, To, NewEl]),
+                                            spawn(fun() ->
                                             ejabberd_router:route(
-                                              From, To, NewEl);
+                                              From, To, NewEl) end);
                                        true ->
                                             error
                                     end;
