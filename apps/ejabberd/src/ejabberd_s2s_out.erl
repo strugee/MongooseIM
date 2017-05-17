@@ -26,7 +26,7 @@
 
 -module(ejabberd_s2s_out).
 -author('alexey@process-one.net').
--behaviour(p1_fsm).
+-behaviour(gen_fsm).
 
 %% External exports
 -export([start/3,
@@ -35,7 +35,7 @@
          terminate_if_waiting_delay/2,
          stop_connection/1]).
 
-%% p1_fsm callbacks (same as gen_fsm)
+%% gen_fsm callbacks (same as gen_fsm)
 -export([init/1,
          open_socket/2,
          wait_for_stream/2,
@@ -102,7 +102,7 @@
 
 %% Module start with or without supervisor:
 -ifdef(NO_TRANSIENT_SUPERVISORS).
--define(SUPERVISOR_START, p1_fsm:start(ejabberd_s2s_out, [From, Host, Type],
+-define(SUPERVISOR_START, gen_fsm:start(ejabberd_s2s_out, [From, Host, Type],
                                        fsm_limit_opts() ++ ?FSMOPTS)).
 -else.
 -define(SUPERVISOR_START, supervisor:start_child(ejabberd_s2s_out_sup,
@@ -151,19 +151,19 @@ start(From, Host, Type) ->
 
 -spec start_link(_, _, _) -> 'ignore' | {'error', _} | {'ok', pid()}.
 start_link(From, Host, Type) ->
-    p1_fsm:start_link(ejabberd_s2s_out, [From, Host, Type],
+    gen_fsm:start_link(ejabberd_s2s_out, [From, Host, Type],
                       fsm_limit_opts() ++ ?FSMOPTS).
 
 
 start_connection(Pid) ->
-    p1_fsm:send_event(Pid, init).
+    gen_fsm:send_event(Pid, init).
 
 
 stop_connection(Pid) ->
-    p1_fsm:send_event(Pid, closed).
+    gen_fsm:send_event(Pid, closed).
 
 %%%----------------------------------------------------------------------
-%%% Callback functions from p1_fsm
+%%% Callback functions from gen_fsm
 %%%----------------------------------------------------------------------
 
 %%----------------------------------------------------------------------
@@ -426,12 +426,12 @@ wait_for_validation({xmlstreamelement, El}, StateData) ->
                 {Pid, _Key, _SID} ->
                     case Type of
                         <<"valid">> ->
-                            p1_fsm:send_event(
+                            gen_fsm:send_event(
                               Pid, {valid,
                                     StateData#state.server,
                                     StateData#state.myname});
                         _ ->
-                            p1_fsm:send_event(
+                            gen_fsm:send_event(
                               Pid, {invalid,
                                     StateData#state.server,
                                     StateData#state.myname})
@@ -727,7 +727,7 @@ reopen_socket(timeout, StateData) ->
     ?INFO_MSG("reopen socket: timeout", []),
     {stop, normal, StateData};
 reopen_socket(closed, StateData) ->
-    p1_fsm:send_event(self(), init),
+    gen_fsm:send_event(self(), init),
     {next_state, open_socket, StateData, ?FSMTIMEOUT}.
 
 
@@ -758,12 +758,12 @@ stream_established({xmlstreamelement, El}, StateData) ->
                 {VPid, _VKey, _SID} ->
                     case VType of
                         <<"valid">> ->
-                            p1_fsm:send_event(
+                            gen_fsm:send_event(
                               VPid, {valid,
                                      StateData#state.server,
                                      StateData#state.myname});
                         _ ->
-                            p1_fsm:send_event(
+                            gen_fsm:send_event(
                               VPid, {invalid,
                                      StateData#state.server,
                                      StateData#state.myname})
