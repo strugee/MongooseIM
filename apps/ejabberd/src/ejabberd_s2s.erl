@@ -478,11 +478,12 @@ parent_domains(<<_, Rest/binary>>, Acc) ->
 
 -spec send_element(pid(), mongoose_acc:t()) -> {'send_element', mongoose_acc:t()}.
 send_element(Pid, El) ->
+    Data = exml:to_binary(mongoose_acc:get(to_send, El)),
     case process_info(Pid, message_queue_len) of
-        {_, X} when X < 500 -> Pid ! {send_element, El};
+        {_, X} when X < 500 -> Pid ! {send_element, {El, Data}};
         _ ->
             Ref = make_ref(),
-            Pid ! {send_element, El, {self(), Ref}},
+            Pid ! {send_element, {El, Data}, {self(), Ref}},
             receive
                 {Ref, ok} -> {send_element, El};
                 {Ref, Reason} -> error(Reason)

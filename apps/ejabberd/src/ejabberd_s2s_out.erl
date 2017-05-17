@@ -886,12 +886,12 @@ handle_info({send_text, Text}, StateName, StateData) ->
 handle_info({send_element, El, {Pid, Ref}}, StateName, StateData) ->
     Pid ! {Ref, ok},
     handle_info({send_element, El}, StateName, StateData);
-handle_info({send_element, El}, StateName, StateData) ->
+handle_info({send_element, {El, Data}}, StateName, StateData) ->
     case StateName of
         stream_established ->
             cancel_timer(StateData#state.timer),
             Timer = erlang:start_timer(?S2STIMEOUT, self(), []),
-            send_element(StateData, El),
+            send_element(StateData, Data),
             {next_state, StateName, StateData#state{timer = Timer}};
         %% In this state we bounce all message: We are waiting before
         %% trying to reconnect
@@ -977,6 +977,8 @@ send_text(StateData, Text) ->
 send_element(StateData, #xmlel{} = El) ->
     ?DEPRECATED,
     send_text(StateData, exml:to_binary(El));
+send_element(StateData, BinData) when is_binary(BinData) ->
+    send_text(StateData, BinData);
 send_element(StateData, Acc) ->
     El = mongoose_acc:get(to_send, Acc),
     send_text(StateData, exml:to_binary(El)).
