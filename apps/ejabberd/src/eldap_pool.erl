@@ -58,14 +58,14 @@ parse_search_result(R) ->
    R.
 
 parse_entries(Entries) ->
-  [#eldap_entry{object_name = list_to_binary(Obj), attributes = parse_attrs(Attrs)} ||
+  [#eldap_entry{object_name = maybe_b2list(Obj), attributes = parse_attrs(Attrs)} ||
     #eldap_entry{object_name = Obj, attributes = Attrs} <- Entries].
 
 parse_attrs(Attrs) ->
-  [{list_to_binary(Name), parse_values(Values)} || {Name, Values} <- Attrs].
+  [{maybe_b2list(Name), parse_values(Values)} || {Name, Values} <- Attrs].
 
 parse_values(Values) ->
-  [list_to_binary(V) || V <- Values].
+  [maybe_b2list(V) || V <- Values].
 
 parse_refs(R) -> R.
 
